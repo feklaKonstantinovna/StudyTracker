@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="🚀 Server" type="NodeJSConfigurationType" factoryName="Node.js">
+    <node-parameters />
+    <script-parameters />
+    <envs>
+      <env name="PATH" value="/opt/homebrew/bin:$PATH" />
+    </envs>
+    <method v="2" />
+    <option name="nodeJsInterpreterRef" value="project" />
+    <option name="nodeJsInterpreterRef" value="/opt/homebrew/bin/node" />
+    <option name="nodeJs" value="/opt/homebrew/bin/node" />
+    <option name="workingDir" value="$PROJECT_DIR$/backend" />
+    <option name="scriptName" value="$PROJECT_DIR$/backend/server.js" />
+  </configuration>
+</component>
