@@ -14,4 +14,8 @@ with sync_playwright() as playwright:
     button_submit = page.get_by_test_id("login-submit")
     button_submit.click()
 
+    pass_email_or_password_alert = page.get_by_test_id("login-success")
+    expect(pass_email_or_password_alert).to_be_visible()
+    expect(pass_email_or_password_alert).to_contain_text("Вход выполнен! Перенаправляем...")
+
     page.wait_for_timeout(5000)
