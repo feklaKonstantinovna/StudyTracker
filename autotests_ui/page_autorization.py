@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright, expect
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=False)
     page = browser.new_page()
-    page.goto("http://localhost:63342/StudyTracker/login.html?_ijt=a4bjf380jj0uei4kk7ocutapu9&_ij_reload=RELOAD_ON_SAVE")
+    page.goto("https://feklakonstantinovna.github.io/StudyTracker/login.html")
 
     email_input = page.get_by_test_id("login-email")
     email_input.fill('test@studyflow.app')
