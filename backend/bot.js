@@ -1,53 +1,53 @@
-require('dotenv').config();
-const TelegramBot = require('node-telegram-bot-api');
-const cron = require('node-cron');
-const { getUserByChatId, getUserData, linkTelegramByCode, getAllLinkedUsers } = require('./server');
+require('./config');
+const TelegramBot    = require('node-telegram-bot-api');
+const cron           = require('node-cron');
+const config         = require('./config');
+const telegramSvc    = require('./services/TelegramService');
+const userDataRepo   = require('./repositories/UserDataRepository');
+const telegramRepo   = require('./repositories/TelegramRepository');
+const db             = require('./repositories/Database');
+const { toDateKey }  = require('./utils/dateUtils');
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-if (!TOKEN) {
-  console.error('❌ TELEGRAM_BOT_TOKEN не задан в .env');
-  process.exit(1);
-}
+const TOKEN = config.TELEGRAM.token;
+if (!TOKEN) { console.error('❌ TELEGRAM_BOT_TOKEN не задан в .env'); process.exit(1); }
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 console.log('🤖 Telegram бот запущен...');
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-function dk(d) {
-  return d.toISOString().split('T')[0];
+// ── Stats helpers ──────────────────────────────────────────────────────────────
+
+class StatsFormatter {
+  static compute(data) {
+    if (!data) return null;
+    const today = toDateKey();
+    const sched = data.schedules?.[today];
+    const dd    = data.dayData?.[today];
+    if (!sched) return null;
+
+    const main   = sched.filter(b => !b.isBreak);
+    const done   = main.filter(b => dd?.bd?.[b.id]).length;
+    const tasks  = sched.flatMap(b => b.tasks || []);
+    const dTasks = tasks.filter(t => dd?.td?.[t.id]).length;
+    const pct    = main.length ? Math.round(done / main.length * 100) : 0;
+    return { done, total: main.length, dTasks, tTasks: tasks.length, pct };
+  }
+
+  static format(stats) {
+    if (!stats) return '📅 Расписание на сегодня ещё не задано.';
+    const bar = '▓'.repeat(Math.round(stats.pct / 10)) + '░'.repeat(10 - Math.round(stats.pct / 10));
+    return `📊 *Прогресс сегодня:*\n${bar} ${stats.pct}%\n\n✅ Блоков: ${stats.done}/${stats.total}\n📝 Задач: ${stats.dTasks}/${stats.tTasks}`;
+  }
 }
 
-function getTodayStats(data) {
-  if (!data) return null;
-  const today = dk(new Date());
-  const sched = data.schedules?.[today];
-  const dd = data.dayData?.[today];
-  if (!sched) return null;
-  const main = sched.filter(b => !b.isBreak);
-  const done = main.filter(b => dd?.bd?.[b.id]).length;
-  const tasks = sched.flatMap(b => b.tasks || []);
-  const dTasks = tasks.filter(t => dd?.td?.[t.id]).length;
-  const pct = main.length ? Math.round(done / main.length * 100) : 0;
-  return { done, total: main.length, dTasks, tTasks: tasks.length, pct };
-}
+// ── Command handlers ───────────────────────────────────────────────────────────
 
-function formatProgress(stats) {
-  if (!stats) return '📅 Расписание на сегодня ещё не задано.';
-  const bar = '▓'.repeat(Math.round(stats.pct / 10)) + '░'.repeat(10 - Math.round(stats.pct / 10));
-  return `
-📊 *Прогресс сегодня:*
-${bar} ${stats.pct}%
+class BotCommandHandler {
+  constructor(bot) {
+    this.bot = bot;
+  }
 
-✅ Блоков: ${stats.done}/${stats.total}
-📝 Задач: ${stats.dTasks}/${stats.tTasks}
-  `.trim();
-}
-
-// ── COMMANDS ──────────────────────────────────────────────────────────────────
-
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `
+  handleStart(chatId) {
+    this.bot.sendMessage(chatId, `
 👋 Привет! Я бот StudyFlow.
 
 Я буду присылать тебе напоминания о занятиях и отчёты о прогрессе.
@@ -63,21 +63,14 @@ bot.onText(/\/start/, (msg) => {
 /link \\<код\\> — привязать аккаунт
 /stats — прогресс сегодня
 /week — статистика недели
-/reminder — настроить напоминание
 /unlink — отвязать аккаунт
-  `.trim(), { parse_mode: 'Markdown' });
-});
-
-// /link <code> — привязать Telegram к аккаунту
-bot.onText(/\/link (.+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  const code = match[1].trim();
-  const result = linkTelegramByCode(code, chatId);
-  if (!result.ok) {
-    bot.sendMessage(chatId, `❌ ${result.error}`);
-    return;
+    `.trim(), { parse_mode: 'Markdown' });
   }
-  bot.sendMessage(chatId, `
+
+  handleLink(chatId, code) {
+    const result = telegramSvc.linkByCode(code, chatId);
+    if (!result.ok) { this.bot.sendMessage(chatId, `❌ ${result.error}`); return; }
+    this.bot.sendMessage(chatId, `
 ✅ *Аккаунт привязан!*
 
 Email: ${result.user.email}
@@ -88,100 +81,84 @@ Email: ${result.user.email}
 • 🎉 Поздравления при выполнении плана
 
 Напиши /stats чтобы увидеть прогресс прямо сейчас.
-  `.trim(), { parse_mode: 'Markdown' });
-});
-
-// /stats — прогресс сегодня
-bot.onText(/\/stats/, (msg) => {
-  const chatId = msg.chat.id;
-  const user = getUserByChatId(chatId);
-  if (!user) {
-    bot.sendMessage(chatId, '❗ Аккаунт не привязан. Используй /link <код>');
-    return;
-  }
-  const data = getUserData(user.id);
-  const stats = getTodayStats(data);
-  bot.sendMessage(chatId, formatProgress(stats), { parse_mode: 'Markdown' });
-});
-
-// /week — статистика за неделю
-bot.onText(/\/week/, (msg) => {
-  const chatId = msg.chat.id;
-  const user = getUserByChatId(chatId);
-  if (!user) {
-    bot.sendMessage(chatId, '❗ Аккаунт не привязан. Используй /link <код>');
-    return;
-  }
-  const data = getUserData(user.id);
-  if (!data) {
-    bot.sendMessage(chatId, '📅 Нет данных.');
-    return;
+    `.trim(), { parse_mode: 'Markdown' });
   }
 
-  let text = '📅 *Статистика за 7 дней:*\n\n';
-  const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const k = dk(d);
-    const sched = data.schedules?.[k];
-    const dd = data.dayData?.[k];
-    const day = days[d.getDay()];
-    if (!sched) {
-      text += `${day} ${d.getDate()} — нет данных\n`;
-      continue;
+  handleStats(chatId) {
+    const user = telegramSvc.getUserByChatId(chatId);
+    if (!user) { this.bot.sendMessage(chatId, '❗ Аккаунт не привязан. Используй /link <код>'); return; }
+    const data  = userDataRepo.get(user.id);
+    const stats = StatsFormatter.compute(data);
+    this.bot.sendMessage(chatId, StatsFormatter.format(stats), { parse_mode: 'Markdown' });
+  }
+
+  handleWeek(chatId) {
+    const user = telegramSvc.getUserByChatId(chatId);
+    if (!user) { this.bot.sendMessage(chatId, '❗ Аккаунт не привязан. Используй /link <код>'); return; }
+    const data = userDataRepo.get(user.id);
+    if (!data)  { this.bot.sendMessage(chatId, '📅 Нет данных.'); return; }
+
+    const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    let text = '📅 *Статистика за 7 дней:*\n\n';
+
+    for (let i = 6; i >= 0; i--) {
+      const d   = new Date(); d.setDate(d.getDate() - i);
+      const key = toDateKey(d);
+      const sched = data.schedules?.[key];
+      const dd    = data.dayData?.[key];
+      const day   = dayNames[d.getDay()];
+
+      if (!sched) { text += `${day} ${d.getDate()} — нет данных\n`; continue; }
+
+      const main = sched.filter(b => !b.isBreak);
+      const done = main.filter(b => dd?.bd?.[b.id]).length;
+      const pct  = main.length ? Math.round(done / main.length * 100) : 0;
+      const emoji = pct >= 80 ? '🟩' : pct > 0 ? '🟨' : '⬛';
+      text += `${emoji} ${day} ${d.getDate()} — ${done}/${main.length} блоков (${pct}%)\n`;
     }
-    const main = sched.filter(b => !b.isBreak);
-    const done = main.filter(b => dd?.bd?.[b.id]).length;
-    const pct = main.length ? Math.round(done / main.length * 100) : 0;
-    const emoji = pct >= 80 ? '🟩' : pct > 0 ? '🟨' : '⬛';
-    text += `${emoji} ${day} ${d.getDate()} — ${done}/${main.length} блоков (${pct}%)\n`;
-  }
-  bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
-});
 
-// /unlink — отвязать аккаунт
-bot.onText(/\/unlink/, (msg) => {
-  const chatId = msg.chat.id;
-  const user = getUserByChatId(chatId);
-  if (!user) {
-    bot.sendMessage(chatId, '❗ Аккаунт не привязан.');
-    return;
+    this.bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
   }
-  const { readDB, writeDB } = require('./server');
-  const db = readDB();
-  if (db.telegramLinks) delete db.telegramLinks[user.id];
-  writeDB(db);
-  bot.sendMessage(chatId, '✅ Аккаунт отвязан. Используй /link чтобы привязать снова.');
-});
 
-// Неизвестная команда
-bot.on('message', (msg) => {
+  handleUnlink(chatId) {
+    const user = telegramSvc.getUserByChatId(chatId);
+    if (!user) { this.bot.sendMessage(chatId, '❗ Аккаунт не привязан.'); return; }
+    telegramSvc.unlink(user.id);
+    this.bot.sendMessage(chatId, '✅ Аккаунт отвязан. Используй /link чтобы привязать снова.');
+  }
+}
+
+const handler = new BotCommandHandler(bot);
+
+bot.onText(/\/start/,    msg => handler.handleStart(msg.chat.id));
+bot.onText(/\/link (.+)/,(msg, m) => handler.handleLink(msg.chat.id, m[1].trim()));
+bot.onText(/\/stats/,    msg => handler.handleStats(msg.chat.id));
+bot.onText(/\/week/,     msg => handler.handleWeek(msg.chat.id));
+bot.onText(/\/unlink/,   msg => handler.handleUnlink(msg.chat.id));
+
+const KNOWN_COMMANDS = ['/start', '/link', '/stats', '/week', '/unlink', '/reminder'];
+bot.on('message', msg => {
   if (!msg.text?.startsWith('/')) return;
-  const known = ['/start', '/link', '/stats', '/week', '/unlink', '/reminder'];
-  if (!known.some(cmd => msg.text.startsWith(cmd))) {
+  if (!KNOWN_COMMANDS.some(cmd => msg.text.startsWith(cmd)))
     bot.sendMessage(msg.chat.id, 'Неизвестная команда. Напиши /start чтобы увидеть список команд.');
-  }
 });
 
-// ── CRON REMINDERS ────────────────────────────────────────────────────────────
+// ── Cron reminders ─────────────────────────────────────────────────────────────
 
-// Утреннее напоминание — по умолчанию 9:00 (МСК)
-const reminderHour = process.env.REMINDER_HOUR || '9';
-const reminderMin = process.env.REMINDER_MINUTE || '0';
+class CronService {
+  constructor(bot) { this.bot = bot; }
 
-cron.schedule(`${reminderMin} ${reminderHour} * * *`, () => {
-  const users = getAllLinkedUsers();
-  users.forEach(({ chat_id, user_id }) => {
-    const data = getUserData(user_id);
-    const today = dk(new Date());
-    const sched = data?.schedules?.[today];
-    if (!sched) return;
+  sendMorningReminders() {
+    telegramSvc.getAllLinkedUsers().forEach(({ userId, chatId }) => {
+      const data  = userDataRepo.get(userId);
+      const today = toDateKey();
+      const sched = data?.schedules?.[today];
+      if (!sched) return;
 
-    const firstBlock = sched.find(b => !b.isBreak);
-    if (!firstBlock) return;
+      const firstBlock = sched.find(b => !b.isBreak);
+      if (!firstBlock) return;
 
-    bot.sendMessage(chat_id, `
+      this.bot.sendMessage(chatId, `
 ☀️ *Доброе утро!*
 
 Сегодня ${new Date().toLocaleDateString('ru', { weekday: 'long', day: 'numeric', month: 'long' })}.
@@ -190,27 +167,39 @@ cron.schedule(`${reminderMin} ${reminderHour} * * *`, () => {
 🕐 Начало в ${firstBlock.time}
 
 Удачи в учёбе! 💪
-    `.trim(), { parse_mode: 'Markdown' });
-  });
-}, { timezone: 'Europe/Moscow' });
+      `.trim(), { parse_mode: 'Markdown' });
+    });
+  }
 
-// Вечерний отчёт — 21:00 МСК
-cron.schedule('0 21 * * *', () => {
-  const users = getAllLinkedUsers();
-  users.forEach(({ chat_id, user_id }) => {
-    const data = getUserData(user_id);
-    const stats = getTodayStats(data);
-    if (!stats) return;
+  sendEveningReports() {
+    telegramSvc.getAllLinkedUsers().forEach(({ userId, chatId }) => {
+      const data  = userDataRepo.get(userId);
+      const stats = StatsFormatter.compute(data);
+      if (!stats) return;
 
-    let msg = formatProgress(stats) + '\n\n';
-    if (stats.pct >= 100) msg += '🎉 *Отличная работа! План выполнен на 100%!*';
-    else if (stats.pct >= 80) msg += '💪 Почти! Ещё немного — и план выполнен!';
-    else if (stats.pct >= 50) msg += '📈 Хороший прогресс! Завтра ещё лучше.';
-    else msg += '💡 Не забудь продолжить учёбу сегодня!';
+      let msg = StatsFormatter.format(stats) + '\n\n';
+      if      (stats.pct >= 100) msg += '🎉 *Отличная работа! План выполнен на 100%!*';
+      else if (stats.pct >=  80) msg += '💪 Почти! Ещё немного — и план выполнен!';
+      else if (stats.pct >=  50) msg += '📈 Хороший прогресс! Завтра ещё лучше.';
+      else                       msg += '💡 Не забудь продолжить учёбу сегодня!';
 
-    bot.sendMessage(chat_id, msg, { parse_mode: 'Markdown' });
-  });
-}, { timezone: 'Europe/Moscow' });
+      this.bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
+    });
+  }
+}
 
-console.log(`⏰ Напоминание настроено на ${reminderHour}:${String(reminderMin).padStart(2,'0')} МСК`);
+const cronService = new CronService(bot);
+const { reminderHour, reminderMinute } = config.TELEGRAM;
+
+cron.schedule(`${reminderMinute} ${reminderHour} * * *`,
+  () => cronService.sendMorningReminders(),
+  { timezone: 'Europe/Moscow' }
+);
+
+cron.schedule('0 21 * * *',
+  () => cronService.sendEveningReports(),
+  { timezone: 'Europe/Moscow' }
+);
+
+console.log(`⏰ Напоминание настроено на ${reminderHour}:${String(reminderMinute).padStart(2,'0')} МСК`);
 console.log('📊 Вечерний отчёт: 21:00 МСК');
