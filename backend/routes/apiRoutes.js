@@ -57,5 +57,18 @@ router.get('/analytics', (req, res) => analytics.get(req, res));
 // ── Goals ──────────────────────────────────────────────────────────────────────
 router.get('/goals',  (req, res) => goals.get(req, res));
 router.post('/goals', (req, res) => goals.set(req, res));
+router.put('/goals',  (req, res) => goals.set(req, res));
+
+// ── Topics ─────────────────────────────────────────────────────────────────────
+const topicRepo = require('../repositories/TopicRepository');
+router.get('/topics',  (req, res) => {
+  res.json({ topics: topicRepo.getAll(req.user.id) });
+});
+router.put('/topics',  (req, res) => {
+  const { topics } = req.body;
+  if (!Array.isArray(topics)) return res.status(400).json({ error: 'topics must be array' });
+  topicRepo.set(req.user.id, topics);
+  res.json({ ok: true });
+});
 
 module.exports = router;
