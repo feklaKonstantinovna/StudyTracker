@@ -8,7 +8,7 @@ const db           = require('./repositories/Database');
 const telegramRepo = require('./repositories/TelegramRepository');
 const telegramSvc  = require('./services/TelegramService');
 
-// ── Legacy exports (bot.js compatibility) ────────────────────────────────────
+// ── Legacy exports (bot.js compatibility) ────────────────────────────────
 function readDB()       { return db.read(); }
 function writeDB(state) { return db.write(state); }
 function getUserData(userId) { return userDataRepo.get(userId); }
@@ -20,7 +20,7 @@ function getAllLinkedUsers() {
 
 module.exports = { readDB, writeDB, getUserData, getUserByChatId, linkTelegramByCode, getAllLinkedUsers };
 
-// ── Start ─────────────────────────────────────────────────────────────────────
+// ── Start ─────────────────────────────────────────────────────────
 if (require.main === module) {
   app.listen(config.PORT, () => {
     console.log(`\n🚀 StudyFlow сервер: http://localhost:${config.PORT}`);
@@ -29,5 +29,6 @@ if (require.main === module) {
     console.log(`🔒 Rate limiting: /auth/email → 5 req/15min | /api/* → 120 req/min`);
     console.log(`🤖 Telegram бот: запусти → node bot.js\n`);
     if (!process.env.SMTP_USER) console.log('⚠️  SMTP не настроен — magic link в ответе (dev mode)\n');
+    if (!process.env.JWT_SECRET) console.log('⚠️  JWT_SECRET не задан — используется dev-секрет. Не для продакшена.\n');
   });
 }

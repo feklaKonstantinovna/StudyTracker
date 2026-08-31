@@ -22,3 +22,6 @@ backend/db.json
 
 # Env
 .env
+backend/.env
+*.pem
+*.key

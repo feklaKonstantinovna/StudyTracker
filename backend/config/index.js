@@ -1,8 +1,13 @@
 require('dotenv').config();
 
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET обязателен в production');
+}
+
 module.exports = {
   PORT:       process.env.PORT       || 3001,
-  JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-me',
+  JWT_SECRET: process.env.JWT_SECRET || (isProd ? undefined : 'dev-secret-change-me'),
   APP_URL:    process.env.APP_URL    || null,
 
   SMTP: {

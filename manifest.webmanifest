@@ -1,0 +1,9 @@
+{
+  "name": "StudyFlow",
+  "short_name": "StudyFlow",
+  "start_url": "study-tracker_2.html",
+  "display": "standalone",
+  "background_color": "#0c0c12",
+  "theme_color": "#0c0c12",
+  "lang": "ru"
+}

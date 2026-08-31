@@ -28,8 +28,17 @@ app.get('/data',  requireAuth, (req, res) => {
   res.json({ data: entry.data, updated_at: entry.updatedAt });
 });
 app.post('/data', requireAuth, (req, res) => {
-  const { data } = req.body;
+  const { data, updatedAt } = req.body;
   if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Нет данных' });
+  const entry = userDataRepo.getMeta(req.user.id);
+  if (entry?.updatedAt && updatedAt && new Date(updatedAt) < new Date(entry.updatedAt)) {
+    return res.status(409).json({
+      error: 'conflict',
+      message: 'На сервере более свежие данные',
+      server_updated_at: entry.updatedAt,
+      data: entry.data,
+    });
+  }
   userDataRepo.set(req.user.id, data);
   res.json({ ok: true, updated_at: new Date().toISOString() });
 });
