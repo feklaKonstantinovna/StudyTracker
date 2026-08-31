@@ -18,16 +18,25 @@ export async function loadFromServer() {
 
 export function updateAuthBanner() {
   const banner = document.getElementById('authBanner');
+  if (!banner) return;
   const email  = localStorage.getItem('sf_email');
-  if (email) {
+  const localOnly = location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
+  if (email && !localOnly) {
     banner.innerHTML = `
       <div style="font-size:20px">✅</div>
-      <div class="auth-banner-text" data-testid="auth-banner-email"><b>Вошла как ${email}</b> — прогресс синхронизируется с сервером.</div>
+      <div class="auth-banner-text" data-testid="auth-banner-email"><b>Вошла как ${email}</b> — синхронизация с твоим backend.</div>
       <div class="auth-btns">
         <button class="btn btn-sm btn-ghost" onclick="window._openTelegramLink()" data-testid="btn-telegram-link">🤖 Telegram</button>
         <button class="btn btn-sm btn-danger" onclick="window._authLogout()" data-testid="btn-logout">Выйти</button>
       </div>`;
+    return;
   }
+  banner.innerHTML = `
+    <div style="font-size:20px">💾</div>
+    <div class="auth-banner-text"><b>Данные живут в этом браузере.</b> Облако на GitHub Pages нет — синхронизация только если запущен свой backend.</div>
+    <div class="auth-btns">
+      <button class="btn btn-sm btn-email-auth" onclick="window._authEmail()" data-testid="btn-auth-email">✉️ Email</button>
+    </div>`;
 }
 
 export async function authEmail() {
@@ -58,7 +67,6 @@ function showDevLoginModal(email, link) {
       <a href="${link}" style="display:block;background:var(--ac);color:#fff;padding:13px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:12px" onclick="document.getElementById('devLoginModal').remove()">
         ✅ Войти в StudyFlow
       </a>
-      <div style="font-size:10px;color:var(--muted);margin-bottom:16px">Ссылка действует 30 минут</div>
       <button onclick="document.getElementById('devLoginModal').remove()" style="background:var(--s3);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:8px;font-size:12px;cursor:pointer">Закрыть</button>
     </div>`;
   document.body.appendChild(overlay);
@@ -69,13 +77,7 @@ export function authLogout() {
   localStorage.removeItem('sf_jwt');
   localStorage.removeItem('sf_email');
   localStorage.removeItem('sf_refresh');
-  const banner = document.getElementById('authBanner');
-  banner.innerHTML = `
-    <div style="font-size:20px">☁️</div>
-    <div class="auth-banner-text"><b>Данные сохраняются только в браузере.</b> Войди чтобы синхронизировать прогресс.</div>
-    <div class="auth-btns">
-      <button class="btn btn-sm btn-email-auth" onclick="window._authEmail()" data-testid="btn-auth-email">✉️ Email</button>
-    </div>`;
+  updateAuthBanner();
   showToast('Вышла из аккаунта');
 }
 
