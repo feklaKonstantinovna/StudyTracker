@@ -48,6 +48,7 @@ import { initAnki, renderAnkiTail, copyAnkiList } from './controllers/AnkiContro
 import { initNotify, toggleEveningReport } from './controllers/NotifyController.js';
 import { renderNearestGoal } from './controllers/HomeWidgetsController.js';
 import { patchShell } from './boot-ui.js';
+import { renderPricing, openPricingModal, closePricingModal, openPromoForm, submitPromoCode, saveToCloud } from './controllers/PlanController.js';
 
 let curDate = new Date();
 const getCurDate = () => curDate;
@@ -57,7 +58,7 @@ function kanbanVisible() {
   return localStorage.getItem('sf_show_kanban') === '1';
 }
 
-const TABS = ['schedule','calendar','kanban','analytics','topics','more'];
+const TABS = ['schedule','calendar','kanban','analytics','topics','pricing','more'];
 
 function switchTab(id) {
   if (id === 'kanban' && !kanbanVisible()) {
@@ -75,6 +76,7 @@ function switchTab(id) {
   if (id === 'kanban')    { syncScheduleToKanbanSilent(); renderKanban(); }
   if (id === 'analytics') renderAnalytics();
   if (id === 'topics')    renderTopics();
+  if (id === 'pricing')   renderPricing();
 }
 
 function applyKanbanNav() {
@@ -202,6 +204,12 @@ window._openTopicModal       = openTopicModal;
 window.saveTopicModal        = saveTopicModal;
 window._deleteTopic          = deleteTopic;
 window.toggleTheme           = toggleTheme;
+window.openPricingModal      = openPricingModal;
+window.closePricingModal     = closePricingModal;
+window.openPromoForm         = openPromoForm;
+window.submitPromoCode       = submitPromoCode;
+window.saveToCloud           = saveToCloud;
+window.renderPricing         = renderPricing;
 window._authEmail            = authEmail;
 window.authEmail             = authEmail;
 window._authLogout           = authLogout;
