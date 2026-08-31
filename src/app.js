@@ -37,18 +37,17 @@ import {
 } from './controllers/GoalsController.js';
 import {
   initTemplates, openTplModal, saveTemplate, applyTemplate, deleteTemplate,
+  applyBuiltinTemplate, applyDemoSchedule,
 } from './controllers/TemplateController.js';
 import {
   initAuth, updateAuthBanner, loadFromServer, authEmail, authLogout, openTelegramLink,
 } from './controllers/AuthController.js';
 import { renderMonetize } from './controllers/MonetizeController.js';
 
-// ── App-level date state ──────────────────────────────────────────────────────
 let curDate = new Date();
 const getCurDate = () => curDate;
 const setCurDate = (d) => { curDate = d; };
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
 const TABS = ['schedule','calendar','kanban','analytics','topics','monetize'];
 
 function switchTab(id) {
@@ -64,7 +63,6 @@ function switchTab(id) {
   if (id === 'monetize')  renderMonetize();
 }
 
-// ── Init all controllers ──────────────────────────────────────────────────────
 initTimer(getCurDate);
 initSchedule(getCurDate, setCurDate, renderSchedule);
 initBlockModal(getCurDate, renderSchedule);
@@ -82,7 +80,6 @@ closeAllEmoji();
 
 if ('Notification' in window && Notification.permission !== 'granted') Notification.requestPermission();
 
-// ── Expose functions to window (for onclick= attributes in HTML) ──────────────
 window.switchTab         = switchTab;
 window.changeDay         = changeDay;
 window.openMiniCal       = openMiniCal;
@@ -114,6 +111,8 @@ window._pickEmojiInto        = pickEmojiInto;
 window.openTplModal          = openTplModal;
 window.saveTemplate          = saveTemplate;
 window._applyTemplate        = applyTemplate;
+window._applyBuiltinTemplate = applyBuiltinTemplate;
+window._applyDemoSchedule    = applyDemoSchedule;
 window._deleteTemplate       = deleteTemplate;
 window.addKanbanCol          = addKanbanCol;
 window.syncScheduleToKanban  = syncScheduleToKanban;
@@ -145,7 +144,6 @@ window._startTimer           = startTimer;
 window._pauseTimer           = pauseTimer;
 window._resetTimer           = resetTimer;
 
-// ── Theme + initial render ────────────────────────────────────────────────────
 applyTheme(localStorage.getItem('sf_theme') === 'light');
 
 if (localStorage.getItem('sf_jwt')) { updateAuthBanner(); loadFromServer(); }
