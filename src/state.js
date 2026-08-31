@@ -24,6 +24,11 @@ function _ensureFields(s) {
   if (!s.topics)      s.topics      = [];
   if (!s.learningGoals) s.learningGoals = [];
   if (s.points == null) s.points = 0;
+  if (!s.updatedAt) s.updatedAt = new Date().toISOString();
+}
+
+export function migrate() {
+  _ensureFields(ST);
 }
 
 export function replaceWithServerData(serverData) {
@@ -34,15 +39,17 @@ export function replaceWithServerData(serverData) {
 
 let saveTimer = null;
 export function persist() {
+  ST.updatedAt = new Date().toISOString();
   localStorage.setItem(LS, JSON.stringify(ST));
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     const jwt = localStorage.getItem('sf_jwt');
     if (!jwt) return;
+    if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
     fetch(API + '/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-      body: JSON.stringify({ data: ST }),
+      body: JSON.stringify({ data: ST, updatedAt: ST.updatedAt }),
     }).catch(() => {});
   }, 1500);
 }
@@ -109,5 +116,6 @@ export function newTaskId()  { return 't' + Date.now() + Math.random().toString(
 export function newTopicId() { return 'tp' + Date.now() + Math.random().toString(36).slice(2,5); }
 export function newGoalId()  { return 'gl' + Date.now() + Math.random().toString(36).slice(2,5); }
 
+migrate();
 void DEF_SCHED; void DEF_WEEKEND; void isWE;
 persist();

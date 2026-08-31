@@ -42,45 +42,104 @@ import {
 import {
   initAuth, updateAuthBanner, loadFromServer, authEmail, authLogout, openTelegramLink,
 } from './controllers/AuthController.js';
-import { renderMonetize } from './controllers/MonetizeController.js';
+import { initOnboarding, openOnboarding, onboardNext, onboardBack, closeOnboarding } from './controllers/OnboardingController.js';
+import { downloadBackupJson, restoreBackupJson } from './controllers/BackupController.js';
+import { initAnki, renderAnkiTail, copyAnkiList } from './controllers/AnkiController.js';
+import { initNotify, toggleEveningReport } from './controllers/NotifyController.js';
+import { renderNearestGoal } from './controllers/HomeWidgetsController.js';
 
 let curDate = new Date();
 const getCurDate = () => curDate;
 const setCurDate = (d) => { curDate = d; };
 
-const TABS = ['schedule','calendar','kanban','analytics','topics','monetize'];
+function kanbanVisible() {
+  return localStorage.getItem('sf_show_kanban') === '1';
+}
+
+const TABS = ['schedule','calendar','kanban','analytics','topics','more'];
 
 function switchTab(id) {
+  if (id === 'kanban' && !kanbanVisible()) {
+    document.getElementById('moreMenu')?.classList.toggle('open');
+    return;
+  }
   TABS.forEach(t => {
     document.getElementById('tab-' + t)?.classList.toggle('active', t === id);
     document.getElementById('tab-btn-' + t)?.classList.toggle('active', t === id);
   });
-  localStorage.setItem('sf_tab', id);
+  document.getElementById('tab-btn-kanban-more')?.classList.toggle('active', id === 'kanban');
+  localStorage.setItem('sf_tab', id === 'monetize' ? 'schedule' : id);
+  closeSidebar();
   if (id === 'calendar')  renderCal();
   if (id === 'kanban')    { syncScheduleToKanbanSilent(); renderKanban(); }
   if (id === 'analytics') renderAnalytics();
   if (id === 'topics')    renderTopics();
-  if (id === 'monetize')  renderMonetize();
 }
 
+function applyKanbanNav() {
+  const show = kanbanVisible();
+  document.getElementById('tab-btn-kanban')?.classList.toggle('hidden-nav', !show);
+  document.getElementById('kanbanMoreWrap')?.classList.toggle('hidden-nav', show);
+}
+
+function toggleMoreMenu() {
+  document.getElementById('moreMenu')?.classList.toggle('open');
+}
+
+function openKanbanFromMore() {
+  localStorage.setItem('sf_show_kanban', '1');
+  applyKanbanNav();
+  switchTab('kanban');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar')?.classList.toggle('open');
+  document.getElementById('sidebarScrim')?.classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('sidebarScrim')?.classList.remove('show');
+}
+
+const renderHome = () => {
+  renderSchedule();
+  renderNearestGoal();
+  renderAnkiTail();
+};
+
 initTimer(getCurDate);
-initSchedule(getCurDate, setCurDate, renderSchedule);
-initBlockModal(getCurDate, renderSchedule);
-initTaskModal(getCurDate, renderSchedule);
-initMiniCal(getCurDate, setCurDate, renderSchedule);
-initCalendar(getCurDate, setCurDate, switchTab, renderSchedule);
+initSchedule(getCurDate, setCurDate, renderHome);
+initBlockModal(getCurDate, renderHome);
+initTaskModal(getCurDate, renderHome);
+initMiniCal(getCurDate, setCurDate, renderHome);
+initCalendar(getCurDate, setCurDate, switchTab, renderHome);
 initKanban(getCurDate);
 initGoals(renderAnalytics);
-initTemplates(getCurDate, renderSchedule);
-initAuth(renderSchedule);
+initTemplates(getCurDate, renderHome);
+initAuth(renderHome);
+initAnki(getCurDate);
+initOnboarding(getCurDate, renderHome);
+initNotify();
+applyKanbanNav();
+updateAuthBanner();
 
 initBlockDeleteBtn();
 initKcDeleteBtn();
 closeAllEmoji();
 
-if ('Notification' in window && Notification.permission !== 'granted') Notification.requestPermission();
-
 window.switchTab         = switchTab;
+window.toggleSidebar     = toggleSidebar;
+window.closeSidebar      = closeSidebar;
+window.toggleMoreMenu    = toggleMoreMenu;
+window.openKanbanFromMore = openKanbanFromMore;
+window.downloadBackupJson = downloadBackupJson;
+window.restoreBackupJson = restoreBackupJson;
+window.copyAnkiList      = copyAnkiList;
+window.toggleEveningReport = toggleEveningReport;
+window.openOnboarding    = openOnboarding;
+window.onboardNext       = onboardNext;
+window.onboardBack       = onboardBack;
+window.closeOnboarding   = closeOnboarding;
 window.changeDay         = changeDay;
 window.openMiniCal       = openMiniCal;
 window.closeMiniCal      = closeMiniCal;
@@ -146,9 +205,17 @@ window._resetTimer           = resetTimer;
 
 applyTheme(localStorage.getItem('sf_theme') === 'light');
 
-if (localStorage.getItem('sf_jwt')) { updateAuthBanner(); loadFromServer(); }
+function API_OK() {
+  return location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+}
 
-renderSchedule();
+if (localStorage.getItem('sf_jwt') && API_OK()) { updateAuthBanner(); loadFromServer(); }
 
-const lastTab = localStorage.getItem('sf_tab');
-if (lastTab && TABS.includes(lastTab) && lastTab !== 'schedule') switchTab(lastTab);
+const savedTab = localStorage.getItem('sf_tab');
+if (savedTab && savedTab !== 'monetize' && (savedTab !== 'kanban' || kanbanVisible())) switchTab(savedTab);
+else switchTab('schedule');
+renderHome();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
