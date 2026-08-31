@@ -4,7 +4,9 @@ export const MONTHS_F = ['Январь','Февраль','Март','Апрел�
 export const MONTHS_S = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 export const DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
-export function dk(d = new Date()) { return d.toISOString().split('T')[0]; }
+export function dk(d = new Date()) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 export function isWE(d) { return d.getDay() === 0 || d.getDay() === 6; }
 export function pad(n) { return String(n).padStart(2, '0'); }
 export function fmtT(s) {

@@ -111,9 +111,9 @@ export function patchShell() {
 .tpl-pick{display:flex;flex-direction:column;gap:8px;}
 .tpl-pick label{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;}
 @media(max-width:720px){
-  .sidebar{transform:translateX(-110%);transition:transform .2s;width:220px;}
-  .sidebar.open{transform:translateX(0);}
-  .main-content{margin-left:0;}
+  .sidebar{position:fixed!important;left:-240px!important;top:0;width:220px;transform:none!important;transition:left .2s;}
+  .sidebar.open{left:0!important;}
+  .main-content{margin-left:0!important;}
   .topbar{display:flex;}
   .tab-content{padding:14px 12px 88px;}
   .day-dock{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:170;background:var(--s1);border-top:1px solid var(--border);padding:8px;gap:6px;justify-content:space-around;}

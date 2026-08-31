@@ -93,12 +93,15 @@ function openKanbanFromMore() {
   switchTab('kanban');
 }
 
+function sidebarEl() {
+  return document.getElementById('sidebar') || document.querySelector('.sidebar');
+}
 function toggleSidebar() {
-  document.getElementById('sidebar')?.classList.toggle('open');
+  sidebarEl()?.classList.toggle('open');
   document.getElementById('sidebarScrim')?.classList.toggle('show');
 }
 function closeSidebar() {
-  document.getElementById('sidebar')?.classList.remove('open');
+  sidebarEl()?.classList.remove('open');
   document.getElementById('sidebarScrim')?.classList.remove('show');
 }
 
@@ -155,6 +158,7 @@ window.openNewBlockModal = openNewBlockModal;
 window.saveBlockModal    = saveBlockModal;
 window._openBlockModal   = openBlockModal;
 window.openNewTaskModal  = openNewTaskModal;
+window._openNewTaskModal = openNewTaskModal;
 window.saveTaskModal     = saveTaskModal;
 window._openTaskModal    = openTaskModal;
 window._toggleBlock      = toggleBlock;
