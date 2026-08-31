@@ -1,8 +1,9 @@
 import { ST, getSched, persist, newBlockId, newTaskId } from '../state.js';
-import { dk, MONTHS_R } from '../utils/dateUtils.js';
+import { dk } from '../utils/dateUtils.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { showToast } from '../utils/toast.js';
 import { apiReq } from '../services/ApiService.js';
+import { BUILTIN_TEMPLATES, DEMO_SCHED } from '../data/defaults.js';
 
 let _getCurDate, _renderSchedule;
 export function initTemplates(getCurDate, renderFn) {
@@ -18,11 +19,16 @@ export function openTplModal() {
 function renderTplList() {
   const list = document.getElementById('tplList');
   const tpls = ST.templates || [];
-  if (!tpls.length) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">Нет сохранённых шаблонов</div>';
-    return;
-  }
-  list.innerHTML = tpls.map(t => `
+  const builtin = BUILTIN_TEMPLATES.map(t => `
+    <div class="tpl-item" data-testid="template-item-${t.id}">
+      <div style="flex:1">
+        <div class="tpl-name">${escapeHtml(t.name)}</div>
+        <div class="tpl-meta">готовый · ${t.blocks.length} блоков</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="window._applyBuiltinTemplate('${t.id}')">Применить</button>
+    </div>`).join('');
+  const own = tpls.length
+    ? tpls.map(t => `
     <div class="tpl-item" data-testid="template-item-${t.id}">
       <div style="flex:1">
         <div class="tpl-name" data-testid="template-name-${t.id}">${escapeHtml(t.name)}</div>
@@ -30,7 +36,35 @@ function renderTplList() {
       </div>
       <button class="btn btn-ghost btn-sm" onclick="window._applyTemplate('${escapeHtml(t.id)}')" data-testid="btn-apply-template-${t.id}">Применить</button>
       <button class="btn btn-danger btn-sm" onclick="window._deleteTemplate('${escapeHtml(t.id)}')" data-testid="btn-delete-template-${t.id}">✕</button>
-    </div>`).join('');
+    </div>`).join('')
+    : '<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Своих шаблонов пока нет</div>';
+  list.innerHTML = `<div class="section-title">Для старта</div>${builtin}<div class="section-title" style="margin-top:12px">Мои</div>${own}`;
+}
+
+function putBlocks(blocks) {
+  const d = _getCurDate();
+  const k = dk(d);
+  ST.schedules[k] = JSON.parse(JSON.stringify(blocks)).map(b => ({
+    ...b,
+    id: newBlockId(),
+    tasks: (b.tasks || []).map(t => ({ ...t, id: newTaskId() })),
+  }));
+  persist();
+  apiReq('POST', `/api/schedule/${k}`, { blocks: ST.schedules[k] });
+  _renderSchedule();
+}
+
+export function applyBuiltinTemplate(id) {
+  const tpl = BUILTIN_TEMPLATES.find(t => t.id === id);
+  if (!tpl) return;
+  putBlocks(tpl.blocks);
+  document.getElementById('tplModal').classList.remove('show');
+  showToast('Каркас на сегодня собран');
+}
+
+export function applyDemoSchedule() {
+  putBlocks(DEMO_SCHED);
+  showToast('Показан пример. Можно стереть и собрать своё');
 }
 
 export function saveTemplate() {
@@ -49,18 +83,9 @@ export function saveTemplate() {
 
 export function applyTemplate(id) {
   const tpl = (ST.templates || []).find(t => t.id === id); if (!tpl) return;
-  const d = _getCurDate(), MONTHS_R_arr = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-  if (!confirm(`Применить шаблон «${tpl.name}» к ${d.getDate()} ${MONTHS_R_arr[d.getMonth()]}? Текущее расписание будет заменено.`)) return;
-  const k = dk(d);
-  ST.schedules[k] = JSON.parse(JSON.stringify(tpl.blocks));
-  ST.schedules[k].forEach(b => {
-    b.id = newBlockId();
-    b.tasks = (b.tasks || []).map(t => ({ ...t, id: newTaskId() }));
-  });
-  persist();
-  apiReq('POST', `/api/schedule/${k}`, { blocks: ST.schedules[k] });
+  if (!confirm('Применить шаблон «' + tpl.name + '»? Текущее расписание будет заменено.')) return;
+  putBlocks(tpl.blocks);
   document.getElementById('tplModal').classList.remove('show');
-  _renderSchedule();
   showToast('📋 Шаблон применён');
 }
 
