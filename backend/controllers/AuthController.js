@@ -56,7 +56,15 @@ class AuthController {
   }
 
   me(req, res) {
-    res.json({ id: req.user.id, email: req.user.email });
+    const userRepo = require('../repositories/UserRepository');
+    const user = userRepo.findById(req.user.id) || req.user;
+    res.json({
+      id: user.id,
+      email: user.email,
+      plan: user.plan || 'free',
+      proUntil: user.proUntil || null,
+      source: user.source || null,
+    });
   }
 
   logout(req, res) {
