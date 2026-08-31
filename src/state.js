@@ -23,6 +23,7 @@ function _ensureFields(s) {
   if (!s.goals)       s.goals       = {};
   if (!s.topics)      s.topics      = [];
   if (!s.learningGoals) s.learningGoals = [];
+  if (s.points == null) s.points = 0;
 }
 
 export function replaceWithServerData(serverData) {
@@ -49,7 +50,7 @@ export function persist() {
 export function getSched(d) {
   const k = dk(d);
   if (!ST.schedules[k]) {
-    ST.schedules[k] = JSON.parse(JSON.stringify(isWE(d) ? DEF_WEEKEND : DEF_SCHED));
+    ST.schedules[k] = [];
     persist();
   }
   return ST.schedules[k];
@@ -61,9 +62,52 @@ export function getDayD(d) {
   return ST.dayData[k];
 }
 
+export function getMissedStreak(today) {
+  let streak = 0;
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const k = dk(d);
+    const sc = ST.schedules[k];
+    if (!sc || !sc.length) continue;
+    const dd = ST.dayData[k] || { bd: {} };
+    const main = sc.filter(b => !b.isBreak);
+    if (!main.length) continue;
+    const done = main.filter(b => dd.bd[b.id]).length;
+    if (done === 0) streak++;
+    else break;
+  }
+  return streak;
+}
+
+export function recoveryPlan(streak) {
+  if (streak <= 0) return null;
+  if (streak === 1) return {
+    mode: 'half',
+    title: 'Вчера сорвалось — сегодня меньше',
+    text: 'Не догоняй. Оставь 1 главный блок или примерно половину нагрузки.',
+  };
+  if (streak <= 4) return {
+    mode: 'soft',
+    title: 'Мягкий вход',
+    text: '1 блок на 25–40 минут. Возврат уже считается.',
+  };
+  return {
+    mode: 'reset',
+    title: 'Сначала вернуться',
+    text: 'Пересобери 1 короткий блок и держи минимум 3 дня. Без наверстывания.',
+  };
+}
+
+export function addPoints(n) {
+  ST.points = (ST.points || 0) + n;
+  persist();
+}
+
 export function newBlockId() { return 'b' + Date.now() + Math.random().toString(36).slice(2,5); }
 export function newTaskId()  { return 't' + Date.now() + Math.random().toString(36).slice(2,5); }
 export function newTopicId() { return 'tp' + Date.now() + Math.random().toString(36).slice(2,5); }
 export function newGoalId()  { return 'gl' + Date.now() + Math.random().toString(36).slice(2,5); }
 
+void DEF_SCHED; void DEF_WEEKEND; void isWE;
 persist();
