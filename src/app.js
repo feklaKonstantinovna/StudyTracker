@@ -47,6 +47,7 @@ import { downloadBackupJson, restoreBackupJson } from './controllers/BackupContr
 import { initAnki, renderAnkiTail, copyAnkiList } from './controllers/AnkiController.js';
 import { initNotify, toggleEveningReport } from './controllers/NotifyController.js';
 import { renderNearestGoal } from './controllers/HomeWidgetsController.js';
+import { patchShell } from './boot-ui.js';
 
 let curDate = new Date();
 const getCurDate = () => curDate;
@@ -106,6 +107,8 @@ const renderHome = () => {
   renderNearestGoal();
   renderAnkiTail();
 };
+
+patchShell();
 
 initTimer(getCurDate);
 initSchedule(getCurDate, setCurDate, renderHome);
