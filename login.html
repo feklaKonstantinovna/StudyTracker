@@ -46,238 +46,115 @@ body {
   box-shadow: 0 24px 64px rgba(0,0,0,0.5);
 }
 
-/* ── Logo ── */
-.logo {
-  text-align: center;
-  margin-bottom: 28px;
-}
+.logo { text-align: center; margin-bottom: 28px; }
 .logo-icon {
-  width: 52px;
-  height: 52px;
+  width: 52px; height: 52px;
   background: linear-gradient(135deg, var(--ac), #5b52d4);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  margin: 0 auto 12px;
-  box-shadow: 0 8px 24px rgba(124,111,247,0.3);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 12px; box-shadow: 0 8px 24px rgba(124,111,247,0.3);
 }
 .logo-name { font-size: 20px; font-weight: 700; color: var(--ac2); }
 .logo-sub  { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-
-/* ── Heading ── */
 .heading       { font-size: 17px; font-weight: 600; margin-bottom: 5px; }
 .heading-sub   { font-size: 12px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
-
-/* ── Hint box ── */
 .hint {
-  background: var(--ac3);
-  border: 1px solid rgba(124,111,247,0.2);
-  border-radius: 10px;
-  padding: 11px 14px;
-  margin-bottom: 20px;
-  font-size: 12px;
-  line-height: 1.7;
+  background: var(--ac3); border: 1px solid rgba(124,111,247,0.2);
+  border-radius: 10px; padding: 11px 14px; margin-bottom: 20px; font-size: 12px; line-height: 1.7;
 }
 .hint-title { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--ac2); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; }
 .hint-row   { display: flex; gap: 6px; }
 .hint-label { color: var(--muted); min-width: 56px; }
 .hint-value { color: var(--text); font-family: 'JetBrains Mono', monospace; }
-
-/* ── Messages ── */
-.msg {
-  border-radius: 9px;
-  padding: 10px 13px;
-  font-size: 12px;
-  margin-bottom: 14px;
-  display: none;
-  gap: 8px;
-  align-items: flex-start;
-  line-height: 1.5;
-}
+.msg { border-radius: 9px; padding: 10px 13px; font-size: 12px; margin-bottom: 14px; display: none; gap: 8px; align-items: flex-start; line-height: 1.5; }
 .msg.show   { display: flex; }
 .msg-error  { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); color: var(--red); }
 .msg-success{ background: rgba(74,222,128,0.1);  border: 1px solid rgba(74,222,128,0.25);  color: var(--green); }
-
-/* ── Form ── */
 .field { margin-bottom: 16px; }
-
-.field label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-bottom: 7px;
-}
-
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 7px; }
 .field input {
-  display: block;
-  width: 100%;
-  background: var(--s2);
-  border: 1.5px solid rgba(255,255,255,0.10);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 15px;
-  color: var(--text);
-  font-family: 'Space Grotesk', sans-serif;
-  outline: none;
-  transition: border-color .18s, box-shadow .18s;
+  display: block; width: 100%; background: var(--s2); border: 1.5px solid rgba(255,255,255,0.10);
+  border-radius: 10px; padding: 12px 14px; font-size: 15px; color: var(--text);
+  font-family: 'Space Grotesk', sans-serif; outline: none; transition: border-color .18s, box-shadow .18s;
 }
 .field input:hover  { border-color: rgba(124,111,247,0.4); }
 .field input:focus  { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(124,111,247,0.15); }
 .field input::placeholder { color: var(--muted); }
-
 .pw-wrap          { position: relative; }
 .pw-wrap input    { padding-right: 46px; }
 .pw-toggle {
-  position: absolute;
-  right: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 17px;
-  cursor: pointer;
-  line-height: 1;
-  padding: 2px;
-  transition: color .15s;
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; line-height: 1; padding: 2px;
 }
 .pw-toggle:hover { color: var(--text); }
-
-/* ── Submit ── */
 .btn-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: linear-gradient(135deg, var(--ac), #5b52d4);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 13px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Space Grotesk', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(124,111,247,0.3);
-  transition: opacity .18s, transform .1s;
-  margin-top: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  background: linear-gradient(135deg, var(--ac), #5b52d4); color: #fff; border: none; border-radius: 10px;
+  padding: 13px; font-size: 14px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(124,111,247,0.3); margin-top: 4px;
 }
 .btn-submit:hover   { opacity: .9; }
-.btn-submit:active  { transform: scale(.99); }
 .btn-submit:disabled{ opacity: .55; cursor: not-allowed; }
-
-.spinner {
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  display: none;
-  flex-shrink: 0;
-}
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.footer {
-  text-align: center;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 20px;
-  line-height: 1.6;
-}
+.footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 20px; line-height: 1.6; }
 .footer a { color: var(--ac2); text-decoration: none; }
-.footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-
 <div class="card" data-testid="login-card">
-
   <div class="logo" data-testid="login-logo">
     <div class="logo-icon">📚</div>
     <div class="logo-name">StudyFlow</div>
     <div class="logo-sub">QA Tracker</div>
   </div>
-
   <div class="heading">Добро пожаловать</div>
   <div class="heading-sub">Войди чтобы начать отслеживать прогресс</div>
-
-  <div class="hint" data-testid="login-hint">
+  <div class="hint" id="loginHint" data-testid="login-hint" style="display:none">
     <div class="hint-title">🔑 Тестовые данные</div>
     <div class="hint-row"><span class="hint-label">Email:</span><span class="hint-value">test@studyflow.app</span></div>
     <div class="hint-row"><span class="hint-label">Пароль:</span><span class="hint-value">Test1234</span></div>
   </div>
-
-  <div class="msg msg-error" id="errorMsg" data-testid="login-error">
-    <span>⚠️</span><span id="errorText"></span>
-  </div>
-  <div class="msg msg-success" id="successMsg" data-testid="login-success">
-    <span>✅</span><span>Вход выполнен! Перенаправляем...</span>
-  </div>
-
+  <div class="msg msg-error" id="errorMsg" data-testid="login-error"><span>⚠️</span><span id="errorText"></span></div>
+  <div class="msg msg-success" id="successMsg" data-testid="login-success"><span>✅</span><span>Вход выполнен! Перенаправляем...</span></div>
   <form id="loginForm" data-testid="login-form" novalidate>
-
     <div class="field">
       <label for="emailInput">Email</label>
-      <input
-        type="email"
-        id="emailInput"
-        name="email"
-        placeholder="your@email.com"
-        autocomplete="off"
-        data-testid="login-email"
-      >
+      <input type="email" id="emailInput" name="email" placeholder="your@email.com" autocomplete="off" data-testid="login-email">
     </div>
-
     <div class="field">
       <label for="passwordInput">Пароль</label>
       <div class="pw-wrap">
-        <input
-          type="password"
-          id="passwordInput"
-          name="password"
-          placeholder="Минимум 6 символов"
-          autocomplete="new-password"
-          data-testid="login-password"
-        >
+        <input type="password" id="passwordInput" name="password" placeholder="Минимум 6 символов" autocomplete="new-password" data-testid="login-password">
         <button type="button" class="pw-toggle" id="pwToggle" data-testid="login-pw-toggle" title="Показать пароль">👁</button>
       </div>
     </div>
-
     <button type="submit" class="btn-submit" id="submitBtn" data-testid="login-submit">
       <div class="spinner" id="spinner"></div>
       <span id="submitText">Войти</span>
     </button>
-
   </form>
-
-  <div class="footer">
-    Данные хранятся в браузере · Сервер не нужен<br><br>
+  <div class="footer">Данные хранятся в браузере · Сервер не нужен<br><br>
     Уже в приложении? <a href="study-tracker_2.html" data-testid="link-to-app">Перейти →</a>
   </div>
-
 </div>
-
 <script>
-// ─── Mock users (email в lowercase) ──────────────────────────────────────────
+(function showQaHint() {
+  const qa = new URLSearchParams(location.search).get('qa') === '1';
+  const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (qa || local) {
+    const hint = document.getElementById('loginHint');
+    if (hint) hint.style.display = 'block';
+  }
+})();
 const MOCK_USERS = [
   { email: 'test@studyflow.app', password: 'Test1234' },
   { email: 'admin@studyflow.app', password: 'admin123' },
 ];
-
-// ─── Fake JWT (просто маркер присутствия, приложение проверяет только наличие)
 function makeFakeJWT(email) {
   const h = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
   const p = btoa(JSON.stringify({ email, id: 'mock-' + Date.now(), iat: Math.floor(Date.now()/1000), exp: Math.floor(Date.now()/1000) + 3600 }));
   return h + '.' + p + '.mock';
 }
-
-// ─── UI helpers ───────────────────────────────────────────────────────────────
 function showError(msg) {
   document.getElementById('errorText').textContent = msg;
   document.getElementById('errorMsg').classList.add('show');
@@ -292,97 +169,56 @@ function setLoading(on) {
   document.getElementById('spinner').style.display = on ? 'block' : 'none';
   document.getElementById('submitText').textContent = on ? 'Входим...' : 'Войти';
 }
-
-// ─── Toggle password visibility ───────────────────────────────────────────────
 document.getElementById('pwToggle').addEventListener('click', function() {
   const inp = document.getElementById('passwordInput');
   const isHidden = inp.type === 'password';
   inp.type = isHidden ? 'text' : 'password';
   this.textContent = isHidden ? '🙈' : '👁';
 });
-
-// ─── Clear errors on input ────────────────────────────────────────────────────
 document.getElementById('emailInput').addEventListener('input', hideMessages);
 document.getElementById('passwordInput').addEventListener('input', hideMessages);
-
-// ─── Submit ───────────────────────────────────────────────────────────────────
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  hideMessages();
-
+  e.preventDefault(); hideMessages();
   const email    = document.getElementById('emailInput').value.trim().toLowerCase();
   const password = document.getElementById('passwordInput').value;
-
-  // Validation
   if (!email) { showError('Введи email'); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('Некорректный формат email'); return; }
+  if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(email)) { showError('Некорректный формат email'); return; }
   if (!password) { showError('Введи пароль'); return; }
   if (password.length < 6) { showError('Пароль должен быть не короче 6 символов'); return; }
-
   setLoading(true);
-
-  // Simulate small delay
   await new Promise(r => setTimeout(r, 500));
-
-  // Сначала проверяем мок-пользователей (точное совпадение)
   const mockUser = MOCK_USERS.find(u => u.email === email && u.password === password);
-
-  // Если не мок — пробуем реальный сервер
   if (!mockUser) {
     try {
       const res = await fetch('http://localhost:3001/auth/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-        signal: AbortSignal.timeout(3000),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }), signal: AbortSignal.timeout(3000),
       }).then(r => r.json());
-
       setLoading(false);
-
       if (res.error) { showError(res.error); return; }
-
-      if (res.devLink) {
-        // Сервер вернул ссылку — показываем её
-        showServerLink(email, res.devLink);
-        return;
-      }
-
-      // SMTP настроен — письмо отправлено
+      if (res.devLink) { showServerLink(email, res.devLink); return; }
       document.getElementById('successMsg').querySelector('span:last-child').textContent = `Ссылка отправлена на ${email}. Проверь почту!`;
       document.getElementById('successMsg').classList.add('show');
       return;
-
-    } catch {
-      // Сервер недоступен — любой email + пароль ≥ 6 символов работает в локальном режиме
-    }
+    } catch {}
   }
-
-  // Локальный вход (мок-пользователь или сервер недоступен)
-  localStorage.setItem('sf_jwt',     makeFakeJWT(email));
-  localStorage.setItem('sf_email',   email);
+  localStorage.setItem('sf_jwt', makeFakeJWT(email));
+  localStorage.setItem('sf_email', email);
   localStorage.setItem('sf_refresh', 'mock-refresh-' + Date.now());
-
   setLoading(false);
   document.getElementById('successMsg').querySelector('span:last-child').textContent = 'Вход выполнен! Перенаправляем...';
   document.getElementById('successMsg').classList.add('show');
-
   setTimeout(() => { window.location.href = 'study-tracker_2.html'; }, 800);
 });
-
-// ─── Server dev-link modal ────────────────────────────────────────────────────
 function showServerLink(email, link) {
   const div = document.createElement('div');
   div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px';
-  div.innerHTML = `
-    <div style="background:#13131c;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 24px;max-width:380px;width:100%;text-align:center;font-family:Space Grotesk,sans-serif">
+  div.innerHTML = `<div style="background:#13131c;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 24px;max-width:380px;width:100%;text-align:center;font-family:Space Grotesk,sans-serif">
       <div style="font-size:32px;margin-bottom:12px">✉️</div>
       <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:#e8e8f0">Ссылка для входа</div>
       <div style="font-size:12px;color:#6b6b8a;margin-bottom:20px">${email}</div>
-      <a href="${link}" style="display:block;background:#7c6ff7;color:#fff;padding:13px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:12px" data-testid="dev-login-link">
-        ✅ Войти в StudyFlow
-      </a>
-      <div style="font-size:11px;color:#6b6b8a;margin-bottom:16px">Ссылка действует 30 минут</div>
-      <button onclick="this.closest('div[style]').remove()" style="background:#222232;border:1px solid rgba(255,255,255,0.08);color:#6b6b8a;padding:7px 18px;border-radius:8px;font-size:12px;cursor:pointer;font-family:Space Grotesk,sans-serif" data-testid="dev-link-close">Закрыть</button>
+      <a href="${link}" style="display:block;background:#7c6ff7;color:#fff;padding:13px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:12px" data-testid="dev-login-link">✅ Войти в StudyFlow</a>
+      <button onclick="this.closest('div[style]').remove()" style="background:#222232;border:1px solid rgba(255,255,255,0.08);color:#6b6b8a;padding:7px 18px;border-radius:8px;font-size:12px;cursor:pointer" data-testid="dev-link-close">Закрыть</button>
     </div>`;
   document.body.appendChild(div);
 }
