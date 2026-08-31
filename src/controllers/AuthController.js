@@ -36,6 +36,7 @@ export function updateAuthBanner() {
     <div class="auth-banner-text"><b>Данные живут в этом браузере.</b> Облако на GitHub Pages нет — синхронизация только если запущен свой backend.</div>
     <div class="auth-btns">
       <button class="btn btn-sm btn-email-auth" onclick="window._authEmail()" data-testid="btn-auth-email">✉️ Email</button>
+      <button class="btn btn-sm btn-ghost" onclick="window.openPricingModal()" data-testid="btn-why-cloud">Зачем облако</button>
     </div>`;
 }
 
@@ -82,6 +83,8 @@ export function authLogout() {
 }
 
 export async function openTelegramLink() {
+  const { isPro } = await import('../plan.js');
+  if (!isPro()) { window.openPricingModal?.('telegram'); return; }
   if (!sfJWT) { showToast('Сначала войди по email'); return; }
   const statusRes = await apiReq('GET', '/telegram/status');
   if (statusRes?.linked) {
