@@ -2,10 +2,12 @@ const express       = require('express');
 const cors          = require('cors');
 const path          = require('path');
 const { requireAuth }             = require('./middleware/authMiddleware');
+const { requirePro }              = require('./middleware/requirePro');
 const { authLimiter, apiLimiter } = require('./middleware/rateLimiter');
 const authRoutes     = require('./routes/authRoutes');
 const apiRoutes      = require('./routes/apiRoutes');
 const telegramRoutes = require('./routes/telegramRoutes');
+const planCtrl       = require('./controllers/PlanController');
 
 const app = express();
 
@@ -17,17 +19,17 @@ app.use('/auth/email', authLimiter);
 app.use('/api/',       apiLimiter);
 
 app.use('/auth',     authRoutes);
-app.use('/api',      requireAuth, apiRoutes);
-app.use('/telegram', requireAuth, telegramRoutes);
+app.post('/api/funnel', apiLimiter, (req, res) => planCtrl.track(req, res));
+app.use('/api',      requireAuth, requirePro, apiRoutes);
+app.use('/telegram', requireAuth, requirePro, telegramRoutes);
 
-// legacy bulk sync (without /api prefix)
 const userDataRepo = require('./repositories/UserDataRepository');
-app.get('/data',  requireAuth, (req, res) => {
+app.get('/data',  requireAuth, requirePro, (req, res) => {
   const entry = userDataRepo.getMeta(req.user.id);
   if (!entry) return res.json({ data: null });
   res.json({ data: entry.data, updated_at: entry.updatedAt });
 });
-app.post('/data', requireAuth, (req, res) => {
+app.post('/data', requireAuth, requirePro, (req, res) => {
   const { data, updatedAt } = req.body;
   if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Нет данных' });
   const entry = userDataRepo.getMeta(req.user.id);
