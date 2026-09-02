@@ -40,6 +40,17 @@ function showStep(n) {
   if (overlay) overlay.dataset.step = String(n);
 }
 
+export function recommendTemplate(title) {
+  const t = String(title || '').toLowerCase();
+  if (/qa|тест|баг|aqa|quality/.test(t)) return 'tpl-qa-eve';
+  if (/sql|join|селект|таблиц|postgres|запрос/.test(t)) return 'tpl-sql';
+  if (/react|frontend|вёрстк|верстк|css|html|javascript|(^|[^a-zа-яё])js([^a-zа-яё]|$)/.test(t)) return 'tpl-fe';
+  if (/backend|api|spring|сервер|endpoint|django|node/.test(t)) return 'tpl-be';
+  if (/алгоритм|leetcode|собес|interview|codewars/.test(t)) return 'tpl-algo';
+  if (/english|англ|язык|ielts/.test(t)) return 'tpl-lang';
+  return 'tpl-study';
+}
+
 export function onboardNext() {
   const overlay = document.getElementById('onboardOverlay');
   const step = parseInt(overlay?.dataset.step || '1', 10);
@@ -47,6 +58,9 @@ export function onboardNext() {
     const title = document.getElementById('onboardGoal')?.value.trim();
     if (!title) { showToast('Напиши, чему учишься'); return; }
     saveQuickGoal(title);
+    const rec = recommendTemplate(title);
+    const radio = document.querySelector(`input[name="onboardTpl"][value="${rec}"]`);
+    if (radio) radio.checked = true;
     showStep(2);
     return;
   }
