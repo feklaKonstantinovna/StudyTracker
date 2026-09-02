@@ -36,4 +36,35 @@ test.describe('onboarding and goals', () => {
     await page.getByTestId('goal-edit-btn-save').click();
     await expect(page.getByTestId('goals-list')).toContainText('40 часов SQL');
   });
+
+  test('SQL JOIN goal preselects SQL-day template', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('sf_skip_onboard');
+      localStorage.removeItem('sfv3');
+    });
+    await page.goto('/study-tracker_2.html');
+    await page.locator('#onboardGoal').fill('SQL JOIN');
+    await page.getByRole('button', { name: 'Дальше' }).click();
+    await expect(page.locator('input[name="onboardTpl"][value="tpl-sql"]')).toBeChecked();
+    await page.getByRole('button', { name: 'Дальше' }).click();
+    await page.getByRole('button', { name: 'Создать сегодня' }).click();
+    await expect(page.locator('#onboardOverlay')).toBeHidden();
+    await expect(page.getByTestId('schedule-blocks')).toContainText(/JOIN|Три запроса/);
+  });
+
+  test('template modal lists IT evening templates and weekend Anki', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('sf_skip_onboard', '1'));
+    await page.goto('/study-tracker_2.html');
+    if (await page.locator('#onboardOverlay.show').isVisible().catch(() => false)) {
+      await page.getByRole('button', { name: 'Пропустить' }).click();
+    }
+    await page.getByTestId('btn-open-templates').click();
+    const list = page.getByTestId('template-list');
+    await expect(list).toContainText('SQL-день');
+    await expect(list).toContainText('Frontend-день');
+    await expect(list).toContainText('Backend-день');
+    await expect(list).toContainText('QA после работы');
+    await expect(list).toContainText('Выходной — только Anki');
+    await expect(list).toContainText('Мягкий вход после срыва');
+  });
 });
