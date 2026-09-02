@@ -103,10 +103,17 @@ export function patchShell() {
         <div class="onboard-step" id="onboardStep2">
           <div class="modal-title">Шаблон на сегодня</div>
           <div class="tpl-pick">
+            <label><input type="radio" name="onboardTpl" value="tpl-qa-eve"> QA после работы</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-sql"> SQL-день</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-fe"> Frontend-день</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-be"> Backend-день</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-algo"> Алгоритмы к собесу</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-study"> Учёба — 3 блока</label>
             <label><input type="radio" name="onboardTpl" value="tpl-qa"> QA-день</label>
             <label><input type="radio" name="onboardTpl" value="tpl-lang"> Язык</label>
             <label><input type="radio" name="onboardTpl" value="tpl-pomo4"> Короткий фокус 4×25</label>
             <label><input type="radio" name="onboardTpl" value="tpl-anki-we"> Выходной — только Anki</label>
+            <label><input type="radio" name="onboardTpl" value="tpl-soft"> Мягкий вход после срыва</label>
           </div>
           <div class="modal-btns">
             <button class="btn btn-ghost btn-sm" onclick="onboardBack()">Назад</button>
